@@ -1,0 +1,31 @@
+Follow these steps to prepare your Rocky linux box for using DUO when authenticating against your active directory.
+
+1)
+sudo dnf install -y realmd sssd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation
+
+2)
+sudo hostnamectl set-hostname democomp
+
+3)
+sudo realm join -U administrator skiptosecure.local
+
+4)
+sudo rpm --import https://duo.com/DUO-GPG-PUBLIC-KEY.asc
+
+5)
+sudo tee /etc/yum.repos.d/duosecurity.repo << EOF
+[duosecurity]
+name=Duo Security Repository
+baseurl=https://pkg.duosecurity.com/RedHat/\$releasever/\$basearch
+enabled=1
+gpgcheck=1
+EOF
+
+6)
+sudo dnf install -y duo_unix
+
+7)
+RUN THE DEPLOY SCRIPT AS SUDO "deployDUO.sh"
+
+8)
+sudo systemctl restart sshd
