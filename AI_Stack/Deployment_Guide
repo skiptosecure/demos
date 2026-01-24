@@ -1,0 +1,62 @@
+Download Rocky ISO from:
+https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-9.7-x86_64-dvd.iso
+
+SETUP:
+Create 2 virtual machines (2 CPU, 4GB RAM, 30GB HD)
+Make sure their NICs are 1) bridged onto the network and or 2) sharing your host IP so they are BOTH accessable from your NETWORK
+
+
+1) On both machines
+
+1a - Run updates:
+sudo dnf update
+
+1b - Install repo management tools:
+sudo dnf install -y dnf-plugins-core
+
+1c - Add Docker repo:
+sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+1d - Install Docker:
+sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+1e - Start and enable Docker:
+sudo systemctl start docker
+sudo systemctl enable docker
+
+1f - Enable Docker for your user:
+sudo usermod -aG docker $USER
+
+1g - Apply group membership:
+newgrp docker
+
+1h -  Make sure you can run Docker without sudo:
+docker ps
+
+
+2) On AI model VM (Or VM #1)
+
+2a - Run the Ollama container in the background, expose port 11434, and store model data in a persistent volume:
+docker run -d --name ollama -p 11434:11434 -v ollama:/root/.ollama ollama/ollama
+ 
+2b - Download the TinyLlama model into the running container:
+docker exec ollama ollama pull tinyllama
+
+2c - Test TinyLlama:
+curl http://localhost:11434/api/generate -d '{"model": "tinyllama", "prompt": "what is 2+2?", "stream": false}'
+
+
+3) On the UI machine (Or VM #2)
+
+3a - Run the Open WebUI container, expose it on port 3000, and point it to the AI Model VM's Ollama API:
+docker run -d --name open-webui -p 3000:8080 -e OLLAMA_BASE_URL=http://192.168.1.42:11434 -v open-webui:/app/backend/data ghcr.io/open-webui/open-webui:main
+
+HEY! Make sure you replace the IP above with the IP of the AI Model VM (or VM #1)
+
+4) In your browser
+
+4a - Navigate to http://192.168.1.42:3000
+4b - Enter new creds
+4c - Explore
+
+HEY! Make sure you replace the IP above with the IP of the AI Model VM (or VM #1)
