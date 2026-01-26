@@ -48,11 +48,11 @@ curl http://localhost:11434/api/generate -d '{"model": "tinyllama", "prompt": "w
 2d - Run the Open WebUI container, expose it on port 3000, and point it to the AI Model VM's Ollama API:
 docker run -d --name open-webui -p 3000:8080 -e OLLAMA_BASE_URL=http://192.168.1.40:11434 -v open-webui:/app/backend/data ghcr.io/open-webui/open-webui:main
 
+HEY! Make sure you replace the IP above with yours!
+
 2e -Open port 3000 on your VM
 sudo firewall-cmd --add-port=3000/tcp --permanent
 sudo firewall-cmd --reload
-
-HEY! Make sure you replace the IP above with the IP of the AI Model VM (or VM #1)
 
 3) In your browser
 
@@ -60,4 +60,4 @@ HEY! Make sure you replace the IP above with the IP of the AI Model VM (or VM #1
 3b - Enter new creds
 3c - Explore
 
-HEY! Make sure you replace the IP above with the IP of the AI Model VM (or VM #1)
+HEY! Make sure you replace the IP above with yours!
