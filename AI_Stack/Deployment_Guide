@@ -2,11 +2,10 @@ Download Rocky ISO from:
 https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-9.7-x86_64-dvd.iso
 
 SETUP:
-Create 2 virtual machines (2 CPU, 4GB RAM, 30GB HD)
-Make sure their NICs are 1) bridged onto the network and or 2) sharing your host IP so they are BOTH accessable from your NETWORK
+Create 1 virtual machine (4 CPU, 8GB RAM, 30GB HD)
+Make sure your NIC is 1) bridged onto the network and or 2) sharing your host IP so it is accessable from your network.
 
-
-1) On both machines
+1) Update and Install Docker
 
 1a - Run updates:
 sudo dnf update
@@ -33,8 +32,9 @@ newgrp docker
 1h -  Make sure you can run Docker without sudo:
 docker ps
 
+1i - Get your IP address
 
-2) On AI model VM (Or VM #1)
+2) Download Ollama and Web UI
 
 2a - Run the Ollama container in the background, expose port 11434, and store model data in a persistent volume:
 docker run -d --name ollama -p 11434:11434 -v ollama:/root/.ollama ollama/ollama
@@ -45,18 +45,19 @@ docker exec ollama ollama pull tinyllama
 2c - Test TinyLlama:
 curl http://localhost:11434/api/generate -d '{"model": "tinyllama", "prompt": "what is 2+2?", "stream": false}'
 
+2d - Run the Open WebUI container, expose it on port 3000, and point it to the AI Model VM's Ollama API:
+docker run -d --name open-webui -p 3000:8080 -e OLLAMA_BASE_URL=http://192.168.1.40:11434 -v open-webui:/app/backend/data ghcr.io/open-webui/open-webui:main
 
-3) On the UI machine (Or VM #2)
-
-3a - Run the Open WebUI container, expose it on port 3000, and point it to the AI Model VM's Ollama API:
-docker run -d --name open-webui -p 3000:8080 -e OLLAMA_BASE_URL=http://192.168.1.42:11434 -v open-webui:/app/backend/data ghcr.io/open-webui/open-webui:main
+2e -Open port 3000 on your VM
+sudo firewall-cmd --add-port=3000/tcp --permanent
+sudo firewall-cmd --reload
 
 HEY! Make sure you replace the IP above with the IP of the AI Model VM (or VM #1)
 
-4) In your browser
+3) In your browser
 
-4a - Navigate to http://192.168.1.42:3000
-4b - Enter new creds
-4c - Explore
+3a - Navigate to http://192.168.1.40:3000
+3b - Enter new creds
+3c - Explore
 
 HEY! Make sure you replace the IP above with the IP of the AI Model VM (or VM #1)
