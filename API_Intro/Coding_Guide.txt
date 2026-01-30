@@ -1,0 +1,115 @@
+API Basics - Code Cheatsheet
+
+Setup
+
+```bash
+pip install flask
+```
+
+---
+
+Example 1: Consuming an API
+
+```python
+import requests
+
+response = requests.get("https://api.ipify.org?format=json")
+data = response.json()
+
+print(data["ip"])
+```
+
+---
+
+Example 2: Building Your First API
+
+```python
+from flask import Flask
+from datetime import datetime
+
+app = Flask(__name__)
+
+@app.route("/time")
+def get_time():
+    return {"current_time": datetime.now().isoformat()}
+
+app.run()
+```
+
+**Test it:** http://localhost:5000/time
+
+---
+
+Example 3: Modular Calculator API
+
+```python
+from flask import Flask, request
+
+app = Flask(__name__)
+
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+
+def multiply(a, b):
+    return a * b
+
+@app.route("/add")
+def handle_add():
+    a = request.args.get("a", type=int)
+    b = request.args.get("b", type=int)
+    return {"result": add(a, b)}
+
+@app.route("/subtract")
+def handle_subtract():
+    a = request.args.get("a", type=int)
+    b = request.args.get("b", type=int)
+    return {"result": subtract(a, b)}
+
+@app.route("/multiply")
+def handle_multiply():
+    a = request.args.get("a", type=int)
+    b = request.args.get("b", type=int)
+    return {"result": multiply(a, b)}
+
+app.run()
+```
+
+**Test it:** http://localhost:5000/add?a=10&b=5
+
+---
+
+## Challenge Solution: Greet API
+
+```python
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.route("/greet")
+def greet():
+    name = request.args.get("name")
+    return {"message": f"Hello, {name}"}
+
+app.run()
+```
+
+**Test it:** http://localhost:5000/greet?name=YourName
+
+---
+
+## Quick Reference
+
+| Concept | What it does |
+|---------|--------------|
+| `Flask(__name__)` | Creates your server |
+| `@app.route("/path")` | Defines an endpoint |
+| `request.args.get("param")` | Grabs URL parameters |
+| `return {"key": value}` | Sends JSON response |
+| `app.run()` | Starts the server |
+
+---
+
+Now go build something.
