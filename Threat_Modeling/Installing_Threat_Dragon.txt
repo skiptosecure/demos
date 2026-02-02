@@ -1,0 +1,10 @@
+Installing Threat Dragon
+
+# Download the RPM
+wget https://github.com/OWASP/threat-dragon/releases/download/v2.5.0/threat-dragon-2.5.0.x86_64.rpm
+
+# Install it
+sudo dnf install -y ./threat-dragon-2.5.0.x86_64.rpm
+
+# Launch it
+threat-dragon
