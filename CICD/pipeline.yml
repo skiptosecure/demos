@@ -1,0 +1,123 @@
+name: Build, Scan, Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-scan-pass:
+    name: App Pass - Build and Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log into GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build container image
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}/app-pass:${{ github.sha }} ./app-pass
+          docker build -t ghcr.io/${{ github.repository }}/app-pass:latest ./app-pass
+
+      - name: Syft SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/${{ github.repository }}/app-pass:${{ github.sha }}
+          artifact-name: sbom-app-pass
+          output-file: sbom-app-pass.spdx.json
+
+      - name: Grype vulnerability scan
+        uses: anchore/scan-action@v6
+        with:
+          image: ghcr.io/${{ github.repository }}/app-pass:${{ github.sha }}
+          fail-build: true
+          severity-cutoff: critical
+          output-format: table
+
+      - name: Grype scan report
+        if: always()
+        uses: anchore/scan-action@v6
+        with:
+          image: ghcr.io/${{ github.repository }}/app-pass:${{ github.sha }}
+          fail-build: false
+          output-format: json
+          output-file: grype-app-pass.json
+
+      - name: Upload scan reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-reports-app-pass
+          path: |
+            sbom-app-pass.spdx.json
+            grype-app-pass.json
+
+      - name: Push image to GHCR
+        run: |
+          docker push ghcr.io/${{ github.repository }}/app-pass:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository }}/app-pass:latest
+
+  build-scan-fail:
+    name: App Fail - Build and Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log into GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build container image
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}/app-fail:${{ github.sha }} ./app-fail
+          docker build -t ghcr.io/${{ github.repository }}/app-fail:latest ./app-fail
+
+      - name: Syft SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/${{ github.repository }}/app-fail:${{ github.sha }}
+          artifact-name: sbom-app-fail
+          output-file: sbom-app-fail.spdx.json
+
+      - name: Grype vulnerability scan
+        uses: anchore/scan-action@v6
+        with:
+          image: ghcr.io/${{ github.repository }}/app-fail:${{ github.sha }}
+          fail-build: true
+          severity-cutoff: critical
+          output-format: table
+
+      - name: Grype scan report
+        if: always()
+        uses: anchore/scan-action@v6
+        with:
+          image: ghcr.io/${{ github.repository }}/app-fail:${{ github.sha }}
+          fail-build: false
+          output-format: json
+          output-file: grype-app-fail.json
+
+      - name: Upload scan reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-reports-app-fail
+          path: |
+            sbom-app-fail.spdx.json
+            grype-app-fail.json
